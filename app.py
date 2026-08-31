@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import pytz
 import io
 
 st.set_page_config(page_title="Swartland Rugby Stats", layout="wide")
@@ -111,7 +112,10 @@ with st.expander("⚙️ Wedstryd Instellings & Name", expanded=False):
 st.markdown(f"### 🏆 **Swartland: {st.session_state.score_us}** | **{tekenaar}: {st.session_state.score_them}**")
 
 def log_event(kat, detail, speler, punte=0, vir_ons=True):
-    t_min = datetime.datetime.now().strftime("%H:%M:%S")
+    # Stel tydsone eksplisiet na Suid-Afrika (SAST / UTC+2)
+    sa_time = datetime.datetime.now(pytz.timezone('Africa/Johannesburg'))
+    t_min = sa_time.strftime("%H:%M:%S")
+    
     st.session_state.events.append({
         "Wedstryd": wedstryd_nr,
         "Tyd": t_min,
@@ -187,11 +191,10 @@ with m_col2:
 
 st.divider()
 
-# 4. ENKELE EXCEL (XLSX) EXPORT WAAR ALLES OP EEN SKERM / WERKBLAD SIT
+# 4. EXCEL EXPORT
 if st.session_state.events:
     df_tydlyn = pd.DataFrame(st.session_state.events)
     
-    # Berekening van Totale
     df_actions_only = df_tydlyn[~df_tydlyn["Speler"].isin(["WEDSTRYD"])]
     df_span_totale = df_actions_only.groupby("Aksie").size().reset_index(name="Totale Aantal")
     df_speler_totale = df_actions_only.groupby(["Speler", "Aksie"]).size().reset_index(name="Aantal")
@@ -203,21 +206,16 @@ if st.session_state.events:
     with t2: st.dataframe(df_speler_totale, use_container_width=True)
     with t3: st.dataframe(df_tydlyn.tail(6), use_container_width=True)
 
-    # BOU 'N REGTE EXCEL LÊER (.XLSX)
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        # Alles op een Hoof-Werkblad (Opsomming & Tydlyn onder mekaar)
         df_span_totale.to_excel(writer, sheet_name='Alle Stats', startrow=1, index=False)
         
-        # Skryf Speler Totale onder Span Totale
         start_row_speler = len(df_span_totale) + 4
         df_speler_totale.to_excel(writer, sheet_name='Alle Stats', startrow=start_row_speler, index=False)
         
-        # Skryf Tydlyn onder Speler Totale
         start_row_tydlyn = start_row_speler + len(df_speler_totale) + 3
         df_tydlyn.to_excel(writer, sheet_name='Alle Stats', startrow=start_row_tydlyn, index=False)
 
-        # Ook afsonderlike Tabs vir maklike navigasie op rekenaar
         df_span_totale.to_excel(writer, sheet_name='Span Totale', index=False)
         df_speler_totale.to_excel(writer, sheet_name='Speler Totale', index=False)
         df_tydlyn.to_excel(writer, sheet_name='Wedstryd Tydlyn', index=False)
