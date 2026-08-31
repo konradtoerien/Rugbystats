@@ -4,7 +4,7 @@ import datetime
 
 st.set_page_config(page_title="Swartland Rugby Stats", layout="centered")
 
-# Donkerblou tema, Swartland-goud aksente en watermerk agtergrond
+# Donkerblou tema, Swartland-goud aksente, kompakte spasies en watermerk
 st.markdown("""
     <style>
     /* Donkerblou Hoof-agtergrond */
@@ -22,8 +22,8 @@ st.markdown("""
         transform: translate(-50%, -50%);
         width: 85vw;
         height: 85vw;
-        max-width: 400px;
-        max-height: 400px;
+        max-width: 380px;
+        max-height: 380px;
         background-image: url('https://raw.githubusercontent.com/konradtoerien/Rugbystats/main/211923.jpg');
         background-size: contain;
         background-repeat: no-repeat;
@@ -33,17 +33,27 @@ st.markdown("""
         z-index: 0;
     }
 
-    /* Knoppie-stilerings (Kompak vir foon) */
+    /* Knoppie-stilerings (Ekstra Kompak) */
     .stButton>button {
         width: 100%;
-        height: 38px;
-        font-size: 11px !important;
+        height: 32px !important;
+        font-size: 10px !important;
         font-weight: bold;
-        border-radius: 6px;
-        padding: 2px 2px;
+        border-radius: 5px;
+        padding: 0px 1px !important;
         border: 1px solid #f4c430 !important;
         background-color: #1c2541 !important;
         color: #ffffff !important;
+        margin-bottom: 0px !important;
+    }
+
+    /* Verminder spasies tussen elemente en kollome */
+    div[data-testid="stHorizontalBlock"] {
+        gap: 0.15rem !important;
+    }
+    
+    .element-container {
+        margin-bottom: 0.2rem !important;
     }
 
     /* Aktiewe speler knoppie uitlig */
@@ -52,13 +62,10 @@ st.markdown("""
         color: #0b132b !important;
     }
 
-    div[data-testid="stHorizontalBlock"] {
-        gap: 0.2rem;
-    }
-
-    /* Eksplisiete wit teks vir titels en spyskaarte */
+    /* Eksplisiete goud teks vir titels */
     h1, h2, h3, h4, label, p {
         color: #f4c430 !important;
+        margin-bottom: 0.2rem !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -73,7 +80,8 @@ if "score_them" not in st.session_state:
 if "active_player" not in st.session_state:
     st.session_state.active_player = "Span"
 
-st.title("🏉 Swartland 7s Stats")
+# Veranderde Titel
+st.title("🏉 Swartland Rugby Stats")
 
 # Wedstryd Instellings
 with st.expander("⚙️ Wedstryd Instellings & Name", expanded=False):
@@ -107,23 +115,22 @@ def log_event(kat, detail, speler, punte=0, vir_ons=True):
             
     st.toast(f"✅ {speler}: {detail}")
 
-# 1. Speler Knoppies (3 Kollome)
+# 1. Speler Knoppies (Nuwe 4 Kollome Indeling)
 st.markdown(f"#### 1. Kies Speler (Aktief: **{st.session_state.active_player}**)")
 
-# 'Span' Knoppie
 if st.button("📋 HELE SPAN / ALGEMEEN"):
     st.session_state.active_player = "Span"
 
-# Verdeel spelers in 3 kollome
-cols = st.columns(3)
+# Verdeel spelers in 4 kollome
+cols = st.columns(4)
 for idx, p_name in enumerate(player_list):
-    col_idx = idx % 3
+    col_idx = idx % 4
     if cols[col_idx].button(f"🏃 {p_name}"):
         st.session_state.active_player = p_name
 
 st.divider()
 
-# 2. Aksie Knoppies (Super Kompak)
+# 2. Aksie Knoppies
 st.markdown("#### 2. Tik Aksie")
 
 curr_p = st.session_state.active_player
