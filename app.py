@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import io
 
 st.set_page_config(page_title="Swartland Rugby Stats", layout="wide")
 
@@ -186,31 +187,46 @@ with m_col2:
 
 st.divider()
 
-# 4. STATS LOG & DUBBEL-CSV EXPORTS
+# 4. ENKELE EXCEL (XLSX) EXPORT WAAR ALLES OP EEN SKERM / WERKBLAD SIT
 if st.session_state.events:
-    df = pd.DataFrame(st.session_state.events)
+    df_tydlyn = pd.DataFrame(st.session_state.events)
     
-    st.markdown("#### 📊 Intydse Wedstryd Log")
-    st.dataframe(df.tail(5), use_container_width=True)
-    
-    # 1. TOTALE PER AKSIE (SPAN TOTALE)
-    df_actions_only = df[~df["Speler"].isin(["WEDSTRYD"])]
-    action_totals = df_actions_only.groupby("Aksie").size().reset_index(name="Totale Aantal")
-    
-    st.markdown("#### 📈 Span Totale per Aksie")
-    st.dataframe(action_totals, use_container_width=True)
-    
-    # 2. TOTALE PER SPELER EN AKSIE
-    player_summary = df_actions_only.groupby(["Speler", "Aksie"]).size().reset_index(name="Aantal")
-    
-    # EXPORT MET UTF-8-SIG EN KOMMA-SKEIDING VIR EXCEL-KOMPATIBILITEIT
-    dl_col1, dl_col2, dl_col3 = st.columns(3)
-    
-    csv_full = df.to_csv(index=False, sep=',').encode('utf-8-sig')
-    dl_col1.download_button("💾 Tydlyn CSV", csv_full, f"{wedstryd_nr}_tydlyn.csv", "text/csv")
-    
-    csv_actions = action_totals.to_csv(index=False, sep=',').encode('utf-8-sig')
-    dl_col2.download_button("📊 Span Totale CSV", csv_actions, f"{wedstryd_nr}_span_totale.csv", "text/csv")
+    # Berekening van Totale
+    df_actions_only = df_tydlyn[~df_tydlyn["Speler"].isin(["WEDSTRYD"])]
+    df_span_totale = df_actions_only.groupby("Aksie").size().reset_index(name="Totale Aantal")
+    df_speler_totale = df_actions_only.groupby(["Speler", "Aksie"]).size().reset_index(name="Aantal")
 
-    csv_players = player_summary.to_csv(index=False, sep=',').encode('utf-8-sig')
-    dl_col3.download_button("🏃 Speler Totale CSV", csv_players, f"{wedstryd_nr}_speler_totale.csv", "text/csv")
+    st.markdown("#### 📊 Wedstryd Log & Totale Opsomming")
+    
+    t1, t2, t3 = st.tabs([" Span Totale", "🏃 Speler Stats", "⏱️ Wedstryd Tydlyn"])
+    with t1: st.dataframe(df_span_totale, use_container_width=True)
+    with t2: st.dataframe(df_speler_totale, use_container_width=True)
+    with t3: st.dataframe(df_tydlyn.tail(6), use_container_width=True)
+
+    # BOU 'N REGTE EXCEL LÊER (.XLSX)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        # Alles op een Hoof-Werkblad (Opsomming & Tydlyn onder mekaar)
+        df_span_totale.to_excel(writer, sheet_name='Alle Stats', startrow=1, index=False)
+        
+        # Skryf Speler Totale onder Span Totale
+        start_row_speler = len(df_span_totale) + 4
+        df_speler_totale.to_excel(writer, sheet_name='Alle Stats', startrow=start_row_speler, index=False)
+        
+        # Skryf Tydlyn onder Speler Totale
+        start_row_tydlyn = start_row_speler + len(df_speler_totale) + 3
+        df_tydlyn.to_excel(writer, sheet_name='Alle Stats', startrow=start_row_tydlyn, index=False)
+
+        # Ook afsonderlike Tabs vir maklike navigasie op rekenaar
+        df_span_totale.to_excel(writer, sheet_name='Span Totale', index=False)
+        df_speler_totale.to_excel(writer, sheet_name='Speler Totale', index=False)
+        df_tydlyn.to_excel(writer, sheet_name='Wedstryd Tydlyn', index=False)
+        
+    excel_data = output.getvalue()
+
+    st.download_button(
+        label="📊 Laai Volledige Excel Worksheet (.xlsx) Af",
+        data=excel_data,
+        file_name=f"{wedstryd_nr}_Volledige_Stats.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
