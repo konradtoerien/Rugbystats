@@ -7,7 +7,6 @@ st.set_page_config(page_title="Swartland Rugby Stats", layout="wide")
 # Donkerblou tema, Swartland-goud aksente, versteekte nav-balk en belynde etikette
 st.markdown("""
     <style>
-    /* Versteek Streamlit se boonste wit nav-balk */
     header[data-testid="stHeader"], .stAppHeader {
         display: none !important;
     }
@@ -40,7 +39,6 @@ st.markdown("""
         z-index: 0;
     }
 
-    /* Ultra-kompakte Mikro-knoppies */
     .stButton>button {
         width: 100%;
         height: 28px !important;
@@ -54,7 +52,6 @@ st.markdown("""
         margin-bottom: 0px !important;
     }
 
-    /* Spesiale Halftyd / Einde Knoppies Styl */
     .match-control-btn > button {
         height: 38px !important;
         font-size: 11px !important;
@@ -92,7 +89,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Inisialiseer Session States
 if "events" not in st.session_state:
     st.session_state.events = []
 if "score_us" not in st.session_state:
@@ -102,7 +98,6 @@ if "score_them" not in st.session_state:
 
 st.title("🏉 Swartland Rugby Stats")
 
-# Wedstryd Instellings
 with st.expander("⚙️ Wedstryd Instellings & Name", expanded=False):
     col_m1, col_m2 = st.columns(2)
     wedstryd_nr = col_m1.text_input("Wedstryd #", value="Wedstryd 1")
@@ -112,7 +107,6 @@ with st.expander("⚙️ Wedstryd Instellings & Name", expanded=False):
     raw_players = st.text_area("Spelername (geskei met 'n komma):", value=default_players)
     player_list = [p.strip() for p in raw_players.split(",") if p.strip()]
 
-# Telbord
 st.markdown(f"### 🏆 **Swartland: {st.session_state.score_us}** | **{tekenaar}: {st.session_state.score_them}**")
 
 def log_event(kat, detail, speler, punte=0, vir_ons=True):
@@ -174,7 +168,7 @@ for p_name in player_list:
 
 st.divider()
 
-# 3. HALFTYD & EINDE KNOPPIES (Onder)
+# 3. HALFTYD & EINDE KNOPPIES
 st.markdown("#### ⏱️ WEDSTRYD BEHEER")
 m_col1, m_col2 = st.columns(2)
 
@@ -192,35 +186,31 @@ with m_col2:
 
 st.divider()
 
-# 4. STATS LOG, OPSOMMING & CSV EXPORTS
+# 4. STATS LOG & DUBBEL-CSV EXPORTS
 if st.session_state.events:
     df = pd.DataFrame(st.session_state.events)
     
     st.markdown("#### 📊 Intydse Wedstryd Log")
     st.dataframe(df.tail(5), use_container_width=True)
     
-    # BEREKEN TOTALE OPSOMMING PER SPELER & AKSLE
-    df_filtered = df[~df["Speler"].isin(["WEDSTRYD"])]
-    summary_df = df_filtered.groupby(["Speler", "Aksie"]).size().reset_index(name="Totaal")
+    # 1. TOTALE PER AKSIE (SPAN TOTALE)
+    df_actions_only = df[~df["Speler"].isin(["WEDSTRYD"])]
+    action_totals = df_actions_only.groupby("Aksie").size().reset_index(name="Totale Aantal")
     
-    st.markdown("#### 📈 Totale Stats Opsomming (Per Speler & Aksie)")
-    st.dataframe(summary_df, use_container_width=True)
+    st.markdown("#### 📈 Span Totale per Aksie")
+    st.dataframe(action_totals, use_container_width=True)
     
-    # LAAL AF KNOPPIES
-    dl_col1, dl_col2 = st.columns(2)
+    # 2. TOTALE PER SPELER EN AKSIE
+    player_summary = df_actions_only.groupby(["Speler", "Aksie"]).size().reset_index(name="Aantal")
     
-    csv_full = df.to_csv(index=False).encode('utf-8')
-    dl_col1.download_button(
-        "💾 Laai Volledige Tydlyn Af (CSV)", 
-        csv_full, 
-        f"{wedstryd_nr}_tydlyn.csv", 
-        "text/csv"
-    )
+    # EXPORT MET UTF-8-SIG EN KOMMA-SKEIDING VIR EXCEL-KOMPATIBILITEIT
+    dl_col1, dl_col2, dl_col3 = st.columns(3)
     
-    csv_summary = summary_df.to_csv(index=False).encode('utf-8')
-    dl_col2.download_button(
-        "📊 Laai Totale Stats Opsomming Af (CSV)", 
-        csv_summary, 
-        f"{wedstryd_nr}_totale_stats.csv", 
-        "text/csv"
-    )
+    csv_full = df.to_csv(index=False, sep=',').encode('utf-8-sig')
+    dl_col1.download_button("💾 Tydlyn CSV", csv_full, f"{wedstryd_nr}_tydlyn.csv", "text/csv")
+    
+    csv_actions = action_totals.to_csv(index=False, sep=',').encode('utf-8-sig')
+    dl_col2.download_button("📊 Span Totale CSV", csv_actions, f"{wedstryd_nr}_span_totale.csv", "text/csv")
+
+    csv_players = player_summary.to_csv(index=False, sep=',').encode('utf-8-sig')
+    dl_col3.download_button("🏃 Speler Totale CSV", csv_players, f"{wedstryd_nr}_speler_totale.csv", "text/csv")
