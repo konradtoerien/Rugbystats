@@ -4,9 +4,18 @@ import datetime
 
 st.set_page_config(page_title="Swartland Rugby Stats", layout="wide")
 
-# Donkerblou tema, Swartland-goud aksente en mikro-knoppies vir die tabel-uitleg
+# Donkerblou tema, Swartland-goud aksente, versteekte nav-balk en belynde etikette
 st.markdown("""
     <style>
+    /* Versteek Streamlit se boonste wit nav-balk */
+    header[data-testid="stHeader"], .stAppHeader {
+        display: none !important;
+    }
+    
+    .stAppViewMain {
+        padding-top: 0px !important;
+    }
+
     .stApp {
         background-color: #0b132b !important;
         color: #ffffff !important;
@@ -45,6 +54,15 @@ st.markdown("""
         margin-bottom: 0px !important;
     }
 
+    /* Spesiale Halftyd / Einde Knoppies Styl */
+    .match-control-btn > button {
+        height: 38px !important;
+        font-size: 11px !important;
+        background-color: #f4c430 !important;
+        color: #0b132b !important;
+        border: 1px solid #ffffff !important;
+    }
+
     div[data-testid="stHorizontalBlock"] {
         gap: 0.1rem !important;
         align-items: center !important;
@@ -63,10 +81,13 @@ st.markdown("""
         font-size: 11px;
         font-weight: bold;
         color: #ffffff;
-        padding-top: 4px;
+        line-height: 28px;
+        height: 28px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -105,7 +126,6 @@ def log_event(kat, detail, speler, punte=0, vir_ons=True):
         "Punte": punte
     })
     
-    # Opdatering van punte vir BEIDE spesifieke spelers én die span
     if punte > 0:
         if vir_ons:
             st.session_state.score_us += punte
@@ -116,7 +136,7 @@ def log_event(kat, detail, speler, punte=0, vir_ons=True):
 
 st.divider()
 
-# 1. SPAN-KNOPPIES (Set Pieces & Teenstander Punte)
+# 1. SPAN-KNOPPIES
 st.markdown("#### 📋 HELE SPAN & TEENSTANDER AKSIES")
 c_span_label, s1, s2, s3, s4, s5, s6, s7, s8, s9 = st.columns([2, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
@@ -133,7 +153,7 @@ if s9.button("🔴 Skrum Verloor"): log_event("Set Piece", "Skrum Verloor", "Spa
 
 st.divider()
 
-# 2. INDIVIDUELE SPELER ROSTER (Elke speler kry sy eie ry knoppies)
+# 2. INDIVIDUELE SPELER ROSTER
 st.markdown("#### 🏃 SPELER INDIVIDUELE STATS")
 
 for p_name in player_list:
@@ -154,11 +174,53 @@ for p_name in player_list:
 
 st.divider()
 
-# Wedstryd Log & CSV
+# 3. HALFTYD & EINDE KNOPPIES (Onder)
+st.markdown("#### ⏱️ WEDSTRYD BEHEER")
+m_col1, m_col2 = st.columns(2)
+
+with m_col1:
+    st.markdown("<div class='match-control-btn'>", unsafe_allow_html=True)
+    if st.button("🔔 HALFTYD"):
+        log_event("Wedstryd", "--- HALFTYD ---", "WEDSTRYD")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with m_col2:
+    st.markdown("<div class='match-control-btn'>", unsafe_allow_html=True)
+    if st.button("🏁 EINDE VAN WEDSTRYD"):
+        log_event("Wedstryd", "=== EINDE VAN WEDSTRYD ===", "WEDSTRYD")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+st.divider()
+
+# 4. STATS LOG, OPSOMMING & CSV EXPORTS
 if st.session_state.events:
     df = pd.DataFrame(st.session_state.events)
-    st.markdown("#### 📊 Wedstryd Log")
-    st.dataframe(df.tail(4), use_container_width=True)
     
-    csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button("💾 Laai Stats Af (CSV)", csv, f"{wedstryd_nr}_stats.csv", "text/csv")
+    st.markdown("#### 📊 Intydse Wedstryd Log")
+    st.dataframe(df.tail(5), use_container_width=True)
+    
+    # BEREKEN TOTALE OPSOMMING PER SPELER & AKSLE
+    df_filtered = df[~df["Speler"].isin(["WEDSTRYD"])]
+    summary_df = df_filtered.groupby(["Speler", "Aksie"]).size().reset_index(name="Totaal")
+    
+    st.markdown("#### 📈 Totale Stats Opsomming (Per Speler & Aksie)")
+    st.dataframe(summary_df, use_container_width=True)
+    
+    # LAAL AF KNOPPIES
+    dl_col1, dl_col2 = st.columns(2)
+    
+    csv_full = df.to_csv(index=False).encode('utf-8')
+    dl_col1.download_button(
+        "💾 Laai Volledige Tydlyn Af (CSV)", 
+        csv_full, 
+        f"{wedstryd_nr}_tydlyn.csv", 
+        "text/csv"
+    )
+    
+    csv_summary = summary_df.to_csv(index=False).encode('utf-8')
+    dl_col2.download_button(
+        "📊 Laai Totale Stats Opsomming Af (CSV)", 
+        csv_summary, 
+        f"{wedstryd_nr}_totale_stats.csv", 
+        "text/csv"
+    )
