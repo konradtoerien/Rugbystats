@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 
-st.set_page_config(page_title="Swartland 7s Stats", layout="centered")
+st.set_page_config(page_title="Swartland Rugby Stats", layout="centered")
 
 # Donkerblou tema, Swartland-goud aksente en watermerk agtergrond
 st.markdown("""
