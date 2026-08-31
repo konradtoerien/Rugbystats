@@ -88,6 +88,16 @@ st.markdown("""
         display: flex;
         align-items: center;
     }
+
+    /* Footer Styl */
+    .app-footer {
+        text-align: center;
+        color: #8d99ae !important;
+        font-size: 10px;
+        padding: 15px 0px 5px 0px;
+        margin-top: 20px;
+        border-top: 1px solid #1c2541;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -112,7 +122,6 @@ with st.expander("⚙️ Wedstryd Instellings & Name", expanded=False):
 st.markdown(f"### 🏆 **Swartland: {st.session_state.score_us}** | **{tekenaar}: {st.session_state.score_them}**")
 
 def log_event(kat, detail, speler, punte=0, vir_ons=True):
-    # Stel tydsone eksplisiet na Suid-Afrika (SAST / UTC+2)
     sa_time = datetime.datetime.now(pytz.timezone('Africa/Johannesburg'))
     t_min = sa_time.strftime("%H:%M:%S")
     
@@ -228,3 +237,6 @@ if st.session_state.events:
         file_name=f"{wedstryd_nr}_Volledige_Stats.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+# FOOTER
+st.markdown("<div class='app-footer'>Kopiereg. Geskryf deur Konrad Toerien en Google Gemini</div>", unsafe_allow_html=True)
