@@ -80,7 +80,6 @@ if "score_them" not in st.session_state:
 if "active_player" not in st.session_state:
     st.session_state.active_player = "Span"
 
-# Veranderde Titel
 st.title("🏉 Swartland Rugby Stats")
 
 # Wedstryd Instellings
@@ -115,13 +114,12 @@ def log_event(kat, detail, speler, punte=0, vir_ons=True):
             
     st.toast(f"✅ {speler}: {detail}")
 
-# 1. Speler Knoppies (Nuwe 4 Kollome Indeling)
+# 1. Speler Knoppies (4 Kollome)
 st.markdown(f"#### 1. Kies Speler (Aktief: **{st.session_state.active_player}**)")
 
 if st.button("📋 HELE SPAN / ALGEMEEN"):
     st.session_state.active_player = "Span"
 
-# Verdeel spelers in 4 kollome
 cols = st.columns(4)
 for idx, p_name in enumerate(player_list):
     col_idx = idx % 4
@@ -135,29 +133,36 @@ st.markdown("#### 2. Tik Aksie")
 
 curr_p = st.session_state.active_player
 
-# Punte Knoppies (4 Kollome)
+# Punte Ons
 p1, p2, p3, p4 = st.columns(4)
 if p1.button("🏉 Drie (+5)"): log_event("Punte", "Drie Gedruk", curr_p, punte=5)
 if p2.button("🎯 Verstell (+2)"): log_event("Punte", "Verstelling Gewen", curr_p, punte=2)
 if p3.button("❌ Verstell Gemis"): log_event("Punte", "Verstelling Gemis", curr_p)
 if p4.button("👟 Strafskop (+3)"): log_event("Punte", "Strafskop Gewen", curr_p, punte=3)
 
-# Punte Teenstander & Drop Goal (3 Kollome)
-p5, p6, p7 = st.columns(3)
+# Punte Teenstander
+p5, p6, p7, p8 = st.columns(4)
 if p5.button("🎯 Skepskop (+3)"): log_event("Punte", "Drop Goal", curr_p, punte=3)
 if p6.button("🔴 Drie Teen (+5)"): log_event("Punte Teen", "Drie Teenstander", tekenaar, punte=5, vir_ons=False)
 if p7.button("🔴 Verstell Teen (+2)"): log_event("Punte Teen", "Verstelling Teenstander", tekenaar, punte=2, vir_ons=False)
+if p8.button("🔴 Skepskop Teen (+3)"): log_event("Punte Teen", "Skepskop Teenstander", tekenaar, punte=3, vir_ons=False)
 
-# Spelaksies (3 Kollome)
-c1, c2, c3 = st.columns(3)
+# Spelaksies & Foute
+c1, c2, c3, c4 = st.columns(4)
 if c1.button("💥 Duikslag Gewen"): log_event("Verdediging", "Dominante Duikslag", curr_p)
 if c2.button("⚠️ Duikslag Gemis"): log_event("Verdediging", "Gemiste Duikslag", curr_p)
 if c3.button("⚡ Omkeer Gewen"): log_event("Afbreekpunt", "Turnover Gewen", curr_p)
+if c4.button("🚩 Strafskop Teen"): log_event("Dissipline", "Strafskop Afgestaan", curr_p)
 
-c4, c5, c6 = st.columns(3)
-if c4.button("❌ Aangeslaan"): log_event("Fout", "Aangeslaan", curr_p)
-if c5.button("🟢 Lynstaan Gewen"): log_event("Set Piece", "Lynstaan Gewen", "Span")
-if c6.button("🔴 Skrum Gewen"): log_event("Set Piece", "Skrum Gewen", "Span")
+c5, c6, c7, c8 = st.columns(4)
+if c5.button("❌ Aangeslaan"): log_event("Fout", "Aangeslaan", curr_p)
+if c6.button("🟢 Lynstaan Gewen"): log_event("Set Piece", "Lynstaan Gewen", "Span")
+if c7.button("🔴 Lynstaan Verloor"): log_event("Set Piece", "Lynstaan Verloor", "Span")
+if c8.button("🔴 Skrum Verloor"): log_event("Set Piece", "Skrum Verloor", "Span")
+
+# Extra Skrum Gewen Rits
+c9, c10 = st.columns(2)
+if c9.button("🟢 Skrum Gewen"): log_event("Set Piece", "Skrum Gewen", "Span")
 
 # Wedstryd Log & CSV
 if st.session_state.events:
