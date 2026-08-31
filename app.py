@@ -3,24 +3,55 @@ import pandas as pd
 import datetime
 import pytz
 import io
+import gspread
+from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="Swartland Rugby Stats", layout="wide")
 
-# Donkerblou tema, Swartland-goud aksente, versteekte nav-balk en belynde etikette
+# Google Sheets Koppelvlak Instelling
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
+@st.cache_resource
+def get_gspread_client():
+    creds_dict = dict(st.secrets["gcp_service_account"])
+    # Maak seker private_key formasie is reg
+    if "private_key" in creds_dict:
+        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+    return gspread.authorize(creds)
+
+def sync_to_google_sheets(events_data, sheet_id):
+    try:
+        client = get_gspread_client()
+        sheet = client.open_by_key(sheet_id)
+        
+        # 1. Tydlyn Blad (Voeg alle individuele aksies by)
+        try:
+            ws_timeline = sheet.worksheet("Seisoen Tydlyn")
+        except gspread.exceptions.WorksheetNotFound:
+            ws_timeline = sheet.add_worksheet(title="Seisoen Tydlyn", rows="1000", cols="10")
+            ws_timeline.append_row(["Wedstryd", "Tyd", "Speler", "Kategorie", "Aksie", "Punte"])
+        
+        # Omskep gebeure na rye
+        rows_to_add = []
+        for e in events_data:
+            rows_to_add.append([e["Wedstryd"], e["Tyd"], e["Speler"], e["Kategorie"], e["Aksie"], e["Punte"]])
+        
+        ws_timeline.append_rows(rows_to_add)
+        return True
+    except Exception as err:
+        st.error(f"Fout met Google Sheets sinkronisasie: {err}")
+        return False
+
+# Donkerblou tema, Swartland-goud aksente
 st.markdown("""
     <style>
-    header[data-testid="stHeader"], .stAppHeader {
-        display: none !important;
-    }
-    
-    .stAppViewMain {
-        padding-top: 0px !important;
-    }
-
-    .stApp {
-        background-color: #0b132b !important;
-        color: #ffffff !important;
-    }
+    header[data-testid="stHeader"], .stAppHeader { display: none !important; }
+    .stAppViewMain { padding-top: 0px !important; }
+    .stApp { background-color: #0b132b !important; color: #ffffff !important; }
     
     .stAppViewContainer::before {
         content: "";
@@ -62,19 +93,9 @@ st.markdown("""
         border: 1px solid #ffffff !important;
     }
 
-    div[data-testid="stHorizontalBlock"] {
-        gap: 0.1rem !important;
-        align-items: center !important;
-    }
-    
-    .element-container {
-        margin-bottom: 0.1rem !important;
-    }
-
-    h1, h2, h3, h4, label, p {
-        color: #f4c430 !important;
-        margin-bottom: 0.1rem !important;
-    }
+    div[data-testid="stHorizontalBlock"] { gap: 0.1rem !important; align-items: center !important; }
+    .element-container { margin-bottom: 0.1rem !important; }
+    h1, h2, h3, h4, label, p { color: #f4c430 !important; margin-bottom: 0.1rem !important; }
     
     .player-label {
         font-size: 11px;
@@ -89,7 +110,6 @@ st.markdown("""
         align-items: center;
     }
 
-    /* Footer Styl */
     .app-footer {
         text-align: center;
         color: #8d99ae !important;
@@ -182,9 +202,9 @@ for p_name in player_list:
 
 st.divider()
 
-# 3. HALFTYD & EINDE KNOPPIES
-st.markdown("#### ⏱️ WEDSTRYD BEHEER")
-m_col1, m_col2 = st.columns(2)
+# 3. HALFTYD, EINDE & SEISOEN SINKRONISASIE
+st.markdown("#### ⏱️ WEDSTRYD BEHEER & SEISOEN SINKRONISASIE")
+m_col1, m_col2, m_col3 = st.columns(3)
 
 with m_col1:
     st.markdown("<div class='match-control-btn'>", unsafe_allow_html=True)
@@ -198,9 +218,20 @@ with m_col2:
         log_event("Wedstryd", "=== EINDE VAN WEDSTRYD ===", "WEDSTRYD")
     st.markdown("</div>", unsafe_allow_html=True)
 
+with m_col3:
+    st.markdown("<div class='match-control-btn'>", unsafe_allow_html=True)
+    if st.button("☁️ STUUR NA SEISOEN SHEET"):
+        if st.session_state.events:
+            sheet_id = st.secrets["gcp_service_account"]["sheet_id"]
+            if sync_to_google_sheets(st.session_state.events, sheet_id):
+                st.success("✅ Wedstryd suksesvol by Seisoen Google Sheet gevoeg!")
+        else:
+            st.warning("Geen stats om te stuur nie.")
+    st.markdown("</div>", unsafe_allow_html=True)
+
 st.divider()
 
-# 4. EXCEL EXPORT
+# 4. EXCEL EXPORT VIR WEDSTRYD
 if st.session_state.events:
     df_tydlyn = pd.DataFrame(st.session_state.events)
     
@@ -232,11 +263,10 @@ if st.session_state.events:
     excel_data = output.getvalue()
 
     st.download_button(
-        label="📊 Laai Volledige Excel Worksheet (.xlsx) Af",
+        label="📊 Laai Wedstryd Excel (.xlsx) Af",
         data=excel_data,
         file_name=f"{wedstryd_nr}_Volledige_Stats.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-# FOOTER
 st.markdown("<div class='app-footer'>Kopiereg. Geskryf deur Konrad Toerien en Google Gemini</div>", unsafe_allow_html=True)
