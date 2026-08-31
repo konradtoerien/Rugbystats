@@ -24,7 +24,7 @@ st.markdown("""
         height: 85vw;
         max-width: 400px;
         max-height: 400px;
-        background-image: url('https://raw.githubusercontent.com/konradtoerien/Rugby-S/main/o.13 Rugby 2026 20260123_211923.jpg');
+        background-image: url('https://raw.githubusercontent.com/konradtoerien/Rugby-S/main/211923.jpg');
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
