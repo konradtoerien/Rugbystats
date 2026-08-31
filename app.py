@@ -4,7 +4,7 @@ import datetime
 
 st.set_page_config(page_title="Swartland Rugby Stats", layout="centered")
 
-# Donkerblou tema, Swartland-goud aksente, kompakte spasies en watermerk
+# Donkerblou tema, Swartland-goud aksente, sentrering en kompakte spasies
 st.markdown("""
     <style>
     /* Donkerblou Hoof-agtergrond */
@@ -33,10 +33,10 @@ st.markdown("""
         z-index: 0;
     }
 
-    /* Knoppie-stilerings (Ekstra Kompak) */
+    /* Knoppie-stilerings (Gespensieer & Gesentreer) */
     .stButton>button {
         width: 100%;
-        height: 32px !important;
+        height: 34px !important;
         font-size: 10px !important;
         font-weight: bold;
         border-radius: 5px;
@@ -45,15 +45,18 @@ st.markdown("""
         background-color: #1c2541 !important;
         color: #ffffff !important;
         margin-bottom: 0px !important;
+        text-align: center !important;
     }
 
     /* Verminder spasies tussen elemente en kollome */
     div[data-testid="stHorizontalBlock"] {
         gap: 0.15rem !important;
+        justify-content: center !important;
     }
     
     .element-container {
         margin-bottom: 0.2rem !important;
+        text-align: center !important;
     }
 
     /* Aktiewe speler knoppie uitlig */
@@ -62,10 +65,11 @@ st.markdown("""
         color: #0b132b !important;
     }
 
-    /* Eksplisiete goud teks vir titels */
+    /* Eksplisiete goud teks en sentrering vir titels */
     h1, h2, h3, h4, label, p {
         color: #f4c430 !important;
         margin-bottom: 0.2rem !important;
+        text-align: center !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -114,7 +118,7 @@ def log_event(kat, detail, speler, punte=0, vir_ons=True):
             
     st.toast(f"✅ {speler}: {detail}")
 
-# 1. Speler Knoppies (4 Kollome)
+# 1. Speler Knoppies (4 Kollome - Gesentreer)
 st.markdown(f"#### 1. Kies Speler (Aktief: **{st.session_state.active_player}**)")
 
 if st.button("📋 HELE SPAN / ALGEMEEN"):
@@ -128,12 +132,11 @@ for idx, p_name in enumerate(player_list):
 
 st.divider()
 
-# 2. Aksie Knoppies
+# 2. Aksie Knoppies (Gesentreer)
 st.markdown("#### 2. Tik Aksie")
 
 curr_p = st.session_state.active_player
 
-# PUNTE VIR vs TEEN (Direk langs mekaar gerangskik)
 st.markdown("**Punte (Vir vs Teen)**")
 
 # Reël 1: Drieë
