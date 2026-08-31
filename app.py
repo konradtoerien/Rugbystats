@@ -133,36 +133,48 @@ st.markdown("#### 2. Tik Aksie")
 
 curr_p = st.session_state.active_player
 
-# Punte Ons
-p1, p2, p3, p4 = st.columns(4)
-if p1.button("🏉 Drie (+5)"): log_event("Punte", "Drie Gedruk", curr_p, punte=5)
-if p2.button("🎯 Verstell (+2)"): log_event("Punte", "Verstelling Gewen", curr_p, punte=2)
-if p3.button("❌ Verstell Gemis"): log_event("Punte", "Verstelling Gemis", curr_p)
-if p4.button("👟 Strafskop (+3)"): log_event("Punte", "Strafskop Gewen", curr_p, punte=3)
+# PUNTE VIR vs TEEN (Direk langs mekaar gerangskik)
+st.markdown("**Punte (Vir vs Teen)**")
 
-# Punte Teenstander
-p5, p6, p7, p8 = st.columns(4)
-if p5.button("🎯 Skepskop (+3)"): log_event("Punte", "Drop Goal", curr_p, punte=3)
-if p6.button("🔴 Drie Teen (+5)"): log_event("Punte Teen", "Drie Teenstander", tekenaar, punte=5, vir_ons=False)
-if p7.button("🔴 Verstell Teen (+2)"): log_event("Punte Teen", "Verstelling Teenstander", tekenaar, punte=2, vir_ons=False)
-if p8.button("🔴 Skepskop Teen (+3)"): log_event("Punte Teen", "Skepskop Teenstander", tekenaar, punte=3, vir_ons=False)
+# Reël 1: Drieë
+p1, p2 = st.columns(2)
+if p1.button("🏉 Drie VIR (+5)"): log_event("Punte", "Drie Gedruk", curr_p, punte=5)
+if p2.button("🔴 Drie TEEN (+5)"): log_event("Punte Teen", "Drie Teenstander", tekenaar, punte=5, vir_ons=False)
 
-# Spelaksies & Foute
+# Reël 2: Verstellings
+p3, p4, p5 = st.columns(3)
+if p3.button("🎯 Verstell. VIR (+2)"): log_event("Punte", "Verstelling Gewen", curr_p, punte=2)
+if p4.button("❌ Verstell. Gemis"): log_event("Punte", "Verstelling Gemis", curr_p)
+if p5.button("🔴 Verstell. TEEN (+2)"): log_event("Punte Teen", "Verstelling Teenstander", tekenaar, punte=2, vir_ons=False)
+
+# Reël 3: Strafskoppe
+p6, p7 = st.columns(2)
+if p6.button("👟 Strafskop VIR (+3)"): log_event("Punte", "Strafskop Gewen", curr_p, punte=3)
+if p7.button("🔴 Strafskop TEEN (+3)"): log_event("Punte Teen", "Strafskop Teenstander", tekenaar, punte=3, vir_ons=False)
+
+# Reël 4: Skepskoppe
+p8, p9 = st.columns(2)
+if p8.button("🎯 Skepskop VIR (+3)"): log_event("Punte", "Drop Goal", curr_p, punte=3)
+if p9.button("🔴 Skepskop TEEN (+3)"): log_event("Punte Teen", "Skepskop Teenstander", tekenaar, punte=3, vir_ons=False)
+
+st.markdown("**Spelaksies, Foute & Set Pieces**")
+
+# Reël 5: Verdediging & Afbreekpunt
 c1, c2, c3, c4 = st.columns(4)
 if c1.button("💥 Duikslag Gewen"): log_event("Verdediging", "Dominante Duikslag", curr_p)
 if c2.button("⚠️ Duikslag Gemis"): log_event("Verdediging", "Gemiste Duikslag", curr_p)
 if c3.button("⚡ Omkeer Gewen"): log_event("Afbreekpunt", "Turnover Gewen", curr_p)
-if c4.button("🚩 Strafskop Teen"): log_event("Dissipline", "Strafskop Afgestaan", curr_p)
+if c4.button("🚩 Strafskop Afgestaan"): log_event("Dissipline", "Strafskop Afgestaan", curr_p)
 
-c5, c6, c7, c8 = st.columns(4)
+# Reël 6: Foute & Set Pieces
+c5, c6, c7 = st.columns(3)
 if c5.button("❌ Aangeslaan"): log_event("Fout", "Aangeslaan", curr_p)
 if c6.button("🟢 Lynstaan Gewen"): log_event("Set Piece", "Lynstaan Gewen", "Span")
 if c7.button("🔴 Lynstaan Verloor"): log_event("Set Piece", "Lynstaan Verloor", "Span")
-if c8.button("🔴 Skrum Verloor"): log_event("Set Piece", "Skrum Verloor", "Span")
 
-# Extra Skrum Gewen Rits
-c9, c10 = st.columns(2)
-if c9.button("🟢 Skrum Gewen"): log_event("Set Piece", "Skrum Gewen", "Span")
+c8, c9 = st.columns(2)
+if c8.button("🟢 Skrum Gewen"): log_event("Set Piece", "Skrum Gewen", "Span")
+if c9.button("🔴 Skrum Verloor"): log_event("Set Piece", "Skrum Verloor", "Span")
 
 # Wedstryd Log & CSV
 if st.session_state.events:
