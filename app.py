@@ -24,7 +24,7 @@ st.markdown("""
         height: 85vw;
         max-width: 400px;
         max-height: 400px;
-        background-image: url('https://raw.githubusercontent.com/konradtoerien/Rugby-S/main/211923.jpg');
+        background-image: url('https://raw.githubusercontent.com/konradtoerien/Rugbystats/main/211923.jpg');
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
@@ -81,7 +81,7 @@ with st.expander("⚙️ Wedstryd Instellings & Name", expanded=False):
     wedstryd_nr = col_m1.text_input("Wedstryd #", value="Wedstryd 1")
     tekenaar = col_m2.text_input("Teenstander", value="Opponent")
     
-    default_players = "Speler 1, Speler 2, Speler 3, Speler 4, Speler 5, Speler 6, Speler 7, Speler 8, Speler 9, Speler 10, Speler 11, Speler 12"
+    default_players = "Speler 1, Speler 2, Speler 3, Speler 4, Speler 5, Speler 6, Speler 7, Speler 8, Speler 9, Speler 10, Speler 11, Speler 12, Speler 13, Speler 14, Speler 15"
     raw_players = st.text_area("Spelername (geskei met 'n komma):", value=default_players)
     player_list = [p.strip() for p in raw_players.split(",") if p.strip()]
 
