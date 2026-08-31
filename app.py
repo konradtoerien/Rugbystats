@@ -2,18 +2,16 @@ import streamlit as st
 import pandas as pd
 import datetime
 
-st.set_page_config(page_title="Swartland Rugby Stats", layout="centered")
+st.set_page_config(page_title="Swartland Rugby Stats", layout="wide")
 
-# Donkerblou tema, Swartland-goud aksente, sentrering en kompakte spasies
+# Donkerblou tema, Swartland-goud aksente en mikro-knoppies vir die tabel-uitleg
 st.markdown("""
     <style>
-    /* Donkerblou Hoof-agtergrond */
     .stApp {
         background-color: #0b132b !important;
         color: #ffffff !important;
     }
     
-    /* Watermerk Logo Agtergrond */
     .stAppViewContainer::before {
         content: "";
         position: fixed;
@@ -28,48 +26,47 @@ st.markdown("""
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
-        opacity: 0.12;
+        opacity: 0.10;
         pointer-events: none;
         z-index: 0;
     }
 
-    /* Knoppie-stilerings (Gespensieer & Gesentreer) */
+    /* Ultra-kompakte Mikro-knoppies */
     .stButton>button {
         width: 100%;
-        height: 34px !important;
-        font-size: 10px !important;
+        height: 28px !important;
+        font-size: 8.5px !important;
         font-weight: bold;
-        border-radius: 5px;
-        padding: 0px 1px !important;
+        border-radius: 4px;
+        padding: 0px 0px !important;
         border: 1px solid #f4c430 !important;
         background-color: #1c2541 !important;
         color: #ffffff !important;
         margin-bottom: 0px !important;
-        text-align: center !important;
     }
 
-    /* Verminder spasies tussen elemente en kollome */
     div[data-testid="stHorizontalBlock"] {
-        gap: 0.15rem !important;
-        justify-content: center !important;
+        gap: 0.1rem !important;
+        align-items: center !important;
     }
     
     .element-container {
-        margin-bottom: 0.2rem !important;
-        text-align: center !important;
+        margin-bottom: 0.1rem !important;
     }
 
-    /* Aktiewe speler knoppie uitlig */
-    div.stButton > button:first-child[aria-pressed="true"] {
-        background-color: #f4c430 !important;
-        color: #0b132b !important;
-    }
-
-    /* Eksplisiete goud teks en sentrering vir titels */
     h1, h2, h3, h4, label, p {
         color: #f4c430 !important;
-        margin-bottom: 0.2rem !important;
-        text-align: center !important;
+        margin-bottom: 0.1rem !important;
+    }
+    
+    .player-label {
+        font-size: 11px;
+        font-weight: bold;
+        color: #ffffff;
+        padding-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -81,8 +78,6 @@ if "score_us" not in st.session_state:
     st.session_state.score_us = 0
 if "score_them" not in st.session_state:
     st.session_state.score_them = 0
-if "active_player" not in st.session_state:
-    st.session_state.active_player = "Span"
 
 st.title("🏉 Swartland Rugby Stats")
 
@@ -110,6 +105,7 @@ def log_event(kat, detail, speler, punte=0, vir_ons=True):
         "Punte": punte
     })
     
+    # Opdatering van punte vir BEIDE spesifieke spelers én die span
     if punte > 0:
         if vir_ons:
             st.session_state.score_us += punte
@@ -118,72 +114,51 @@ def log_event(kat, detail, speler, punte=0, vir_ons=True):
             
     st.toast(f"✅ {speler}: {detail}")
 
-# 1. Speler Knoppies (4 Kollome - Gesentreer)
-st.markdown(f"#### 1. Kies Speler (Aktief: **{st.session_state.active_player}**)")
+st.divider()
 
-if st.button("📋 HELE SPAN / ALGEMEEN"):
-    st.session_state.active_player = "Span"
+# 1. SPAN-KNOPPIES (Set Pieces & Teenstander Punte)
+st.markdown("#### 📋 HELE SPAN & TEENSTANDER AKSIES")
+c_span_label, s1, s2, s3, s4, s5, s6, s7, s8, s9 = st.columns([2, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
-cols = st.columns(4)
-for idx, p_name in enumerate(player_list):
-    col_idx = idx % 4
-    if cols[col_idx].button(f"🏃 {p_name}"):
-        st.session_state.active_player = p_name
+with c_span_label: st.markdown("<div class='player-label'>HELE SPAN</div>", unsafe_allow_html=True)
+if s1.button("🔴 Drie-T (+5)"): log_event("Punte Teen", "Drie Teenstander", tekenaar, punte=5, vir_ons=False)
+if s2.button("🔴 Verst-T (+2)"): log_event("Punte Teen", "Verstelling Teenstander", tekenaar, punte=2, vir_ons=False)
+if s3.button("🔴 Straf-T (+3)"): log_event("Punte Teen", "Strafskop Teenstander", tekenaar, punte=3, vir_ons=False)
+if s4.button("🔴 Skep-T (+3)"): log_event("Punte Teen", "Skepskop Teenstander", tekenaar, punte=3, vir_ons=False)
+if s5.button("🚩 Straf Afgestaan"): log_event("Dissipline", "Strafskop Afgestaan", "Span")
+if s6.button("🟢 Lynst Gewen"): log_event("Set Piece", "Lynstaan Gewen", "Span")
+if s7.button("🔴 Lynst Verloor"): log_event("Set Piece", "Lynstaan Verloor", "Span")
+if s8.button("🟢 Skrum Gewen"): log_event("Set Piece", "Skrum Gewen", "Span")
+if s9.button("🔴 Skrum Verloor"): log_event("Set Piece", "Skrum Verloor", "Span")
 
 st.divider()
 
-# 2. Aksie Knoppies (Gesentreer)
-st.markdown("#### 2. Tik Aksie")
+# 2. INDIVIDUELE SPELER ROSTER (Elke speler kry sy eie ry knoppies)
+st.markdown("#### 🏃 SPELER INDIVIDUELE STATS")
 
-curr_p = st.session_state.active_player
+for p_name in player_list:
+    c_label, b1, b2, b3, b4, b5, b6, b7, b8, b9 = st.columns([2, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    
+    with c_label:
+        st.markdown(f"<div class='player-label'>{p_name}</div>", unsafe_allow_html=True)
+        
+    if b1.button("🏉 Drie (+5)", key=f"drie_{p_name}"): log_event("Punte", "Drie Gedruk", p_name, punte=5)
+    if b2.button("🎯 Verst (+2)", key=f"verst_{p_name}"): log_event("Punte", "Verstelling Gewen", p_name, punte=2)
+    if b3.button("❌ Verst Gem", key=f"verstgem_{p_name}"): log_event("Punte", "Verstelling Gemis", p_name)
+    if b4.button("👟 Straf (+3)", key=f"straf_{p_name}"): log_event("Punte", "Strafskop Gewen", p_name, punte=3)
+    if b5.button("🎯 Skep (+3)", key=f"skep_{p_name}"): log_event("Punte", "Drop Goal", p_name, punte=3)
+    if b6.button("💥 Duik Gewen", key=f"duikgew_{p_name}"): log_event("Verdediging", "Dominante Duikslag", p_name)
+    if b7.button("⚠️ Duik Gemis", key=f"duikgem_{p_name}"): log_event("Verdediging", "Gemiste Duikslag", p_name)
+    if b8.button("⚡ Omkeer Gew", key=f"omkeer_{p_name}"): log_event("Afbreekpunt", "Turnover Gewen", p_name)
+    if b9.button("❌ Aangeslaan", key=f"aangeslaan_{p_name}"): log_event("Fout", "Aangeslaan", p_name)
 
-st.markdown("**Punte (Vir vs Teen)**")
-
-# Reël 1: Drieë
-p1, p2 = st.columns(2)
-if p1.button("🏉 Drie VIR (+5)"): log_event("Punte", "Drie Gedruk", curr_p, punte=5)
-if p2.button("🔴 Drie TEEN (+5)"): log_event("Punte Teen", "Drie Teenstander", tekenaar, punte=5, vir_ons=False)
-
-# Reël 2: Verstellings
-p3, p4, p5 = st.columns(3)
-if p3.button("🎯 Verstell. VIR (+2)"): log_event("Punte", "Verstelling Gewen", curr_p, punte=2)
-if p4.button("❌ Verstell. Gemis"): log_event("Punte", "Verstelling Gemis", curr_p)
-if p5.button("🔴 Verstell. TEEN (+2)"): log_event("Punte Teen", "Verstelling Teenstander", tekenaar, punte=2, vir_ons=False)
-
-# Reël 3: Strafskoppe
-p6, p7 = st.columns(2)
-if p6.button("👟 Strafskop VIR (+3)"): log_event("Punte", "Strafskop Gewen", curr_p, punte=3)
-if p7.button("🔴 Strafskop TEEN (+3)"): log_event("Punte Teen", "Strafskop Teenstander", tekenaar, punte=3, vir_ons=False)
-
-# Reël 4: Skepskoppe
-p8, p9 = st.columns(2)
-if p8.button("🎯 Skepskop VIR (+3)"): log_event("Punte", "Drop Goal", curr_p, punte=3)
-if p9.button("🔴 Skepskop TEEN (+3)"): log_event("Punte Teen", "Skepskop Teenstander", tekenaar, punte=3, vir_ons=False)
-
-st.markdown("**Spelaksies, Foute & Set Pieces**")
-
-# Reël 5: Verdediging & Afbreekpunt
-c1, c2, c3, c4 = st.columns(4)
-if c1.button("💥 Duikslag Gewen"): log_event("Verdediging", "Dominante Duikslag", curr_p)
-if c2.button("⚠️ Duikslag Gemis"): log_event("Verdediging", "Gemiste Duikslag", curr_p)
-if c3.button("⚡ Omkeer Gewen"): log_event("Afbreekpunt", "Turnover Gewen", curr_p)
-if c4.button("🚩 Strafskop Afgestaan"): log_event("Dissipline", "Strafskop Afgestaan", curr_p)
-
-# Reël 6: Foute & Set Pieces
-c5, c6, c7 = st.columns(3)
-if c5.button("❌ Aangeslaan"): log_event("Fout", "Aangeslaan", curr_p)
-if c6.button("🟢 Lynstaan Gewen"): log_event("Set Piece", "Lynstaan Gewen", "Span")
-if c7.button("🔴 Lynstaan Verloor"): log_event("Set Piece", "Lynstaan Verloor", "Span")
-
-c8, c9 = st.columns(2)
-if c8.button("🟢 Skrum Gewen"): log_event("Set Piece", "Skrum Gewen", "Span")
-if c9.button("🔴 Skrum Verloor"): log_event("Set Piece", "Skrum Verloor", "Span")
+st.divider()
 
 # Wedstryd Log & CSV
 if st.session_state.events:
     df = pd.DataFrame(st.session_state.events)
     st.markdown("#### 📊 Wedstryd Log")
-    st.dataframe(df.tail(3), use_container_width=True)
+    st.dataframe(df.tail(4), use_container_width=True)
     
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button("💾 Laai Stats Af (CSV)", csv, f"{wedstryd_nr}_stats.csv", "text/csv")
